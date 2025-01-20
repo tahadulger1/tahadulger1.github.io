@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soyad Uyum Analizi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💝 Soyad Uyum Analizi 💝</h1>
+        
+        <div class="input-group">
+            <label for="firstName">Adınız:</label>
+            <input type="text" id="firstName" placeholder="Adınızı giriniz">
+        </div>
+
+        <div class="input-group">
+            <label for="lastName">Mevcut Soyadınız:</label>
+            <input type="text" id="lastName" placeholder="Mevcut soyadınızı giriniz">
+        </div>
+
+        <div class="input-group">
+            <label for="newLastName">Yeni Soyad:</label>
+            <input type="text" id="newLastName" placeholder="Almak istediğiniz soyadı giriniz">
+        </div>
+
+        <button onclick="analyzeNames()">Analiz Et</button>
+
+        <div id="result">
+            <!-- Sonuçlar buraya JavaScript ile eklenecek -->
+        </div>
+    </div>
+
+    <script>
+        function calculateHarmony(firstName, newLastName) {
+            let score = 0;
+            const maxScore = 100;
+            
+            // İsim ve soyismin son harflerinin uyumu
+            if (firstName.slice(-1) === newLastName.slice(-1)) {
+                score += 20;
+            }
+
+            // Hece sayısı uyumu
+            const firstNameSyllables = countSyllables(firstName);
+            const lastNameSyllables = countSyllables(newLastName);
+            if (Math.abs(firstNameSyllables - lastNameSyllables) <= 1) {
+                score += 20;
+            }
+
+            // Uzunluk uyumu
+            if (Math.abs(firstName.length - newLastName.length) <= 2) {
+                score += 20;
+            }
+
+            // Ortak harf sayısı
+            const commonLetters = firstName.toLowerCase().split('')
+                .filter(letter => newLastName.toLowerCase().includes(letter));
+            score += Math.min(20, (commonLetters.length * 5));
+
+            // Ses uyumu
+            const vowelHarmony = checkVowelHarmony(firstName, newLastName);
+            score += vowelHarmony * 20;
+
+            return Math.min(score, maxScore);
+        }
+
+        function countSyllables(word) {
+            const vowels = 'aeıioöuüAEIİOÖUÜ';
+            let count = 0;
+            let prevIsVowel = false;
+
+            for (let letter of word) {
+                const isVowel = vowels.includes(letter);
+                if (isVowel && !prevIsVowel) {
+                    count++;
+                }
+                prevIsVowel = isVowel;
+            }
+            return count;
+        }
+
+        function checkVowelHarmony(firstName, newLastName) {
+            const frontVowels = 'eöüiEÖÜİ';
+            const backVowels = 'aıouAIOU';
+            
+            const firstNameLastVowel = [...firstName].reverse()
+                .find(char => 'aeıioöuüAEIİOÖUÜ'.includes(char));
+            const lastNameFirstVowel = [...newLastName]
+                .find(char => 'aeıioöuüAEIİOÖUÜ'.includes(char));
+
+            if (!firstNameLastVowel || !lastNameFirstVowel) return 0;
+
+            const isFrontVowel1 = frontVowels.includes(firstNameLastVowel);
+            const isFrontVowel2 = frontVowels.includes(lastNameFirstVowel);
+
+            return (isFrontVowel1 === isFrontVowel2) ? 1 : 0;
+        }
+
+        function getHarmonyMessage(score) {
+            if (score >= 90) return "Mükemmel bir uyum! 🌟";
+            if (score >= 70) return "Çok güzel bir uyum! ✨";
+            if (score >= 50) return "İyi bir uyum! 👍";
+            if (score >= 30) return "Ortalama bir uyum 🤔";
+            return "Çok uyumlu görünmüyor 😅";
+        }
+
+        function analyzeNames() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const newLastName = document.getElementById('newLastName').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!firstName || !lastName || !newLastName) {
+                alert('Lütfen tüm alanları doldurunuz!');
+                return;
+            }
+
+            const harmonyScore = calculateHarmony(firstName, newLastName);
+            const message = getHarmonyMessage(harmonyScore);
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h3>Analiz Sonucu</h3>
+                <p style="font-size: 1.2rem; margin-bottom: 10px;">
+                    <strong>${firstName} ${newLastName}</strong>
+                </p>
+                <p style="font-size: 1.1rem; color: #007bff;">
+                    Uyum Skoru: ${harmonyScore}%
+                </p>
+                <p style="font-size: 1.2rem; margin-top: 10px;">
+                    ${message}
+                </p>
+                <div style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                    Analiz Kriterleri:
+                    <ul>
+                        <li>Harf uyumu</li>
+                        <li>Hece sayısı</li>
+                        <li>İsim uzunluğu</li>
+                        <li>Ses uyumu</li>
+                        <li>Ortak harfler</li>
+                    </ul>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
