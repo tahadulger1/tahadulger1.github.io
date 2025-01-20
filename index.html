@@ -131,9 +131,68 @@
             color: #79b8ff;
             text-decoration: underline;
         }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+        }
+
+        .dark-mode .container {
+            background-color: #2d2d2d;
+            color: #fff;
+        }
+
+        .dark-mode h1, .dark-mode label {
+            color: #fff;
+        }
+
+        .dark-mode input {
+            background-color: #3d3d3d;
+            color: #fff;
+            border-color: #4d4d4d;
+        }
+
+        .dark-mode #result {
+            background-color: #3d3d3d;
+            color: #fff;
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* Clear button */
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .clear-btn {
+            background-color: #dc3545;
+        }
+
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
     <div class="container">
         <h1>💝 Soyad Uyum Analizi 💝</h1>
         
@@ -152,7 +211,10 @@
             <input type="text" id="newLastName" placeholder="Almak istediğiniz soyadı giriniz">
         </div>
 
-        <button onclick="analyzeNames()">Analiz Et</button>
+        <div class="button-group">
+            <button onclick="analyzeNames()">Analiz Et</button>
+            <button class="clear-btn" onclick="clearForm()">Temizle</button>
+        </div>
 
         <div id="result">
             <!-- Sonuçlar buraya JavaScript ile eklenecek -->
@@ -160,6 +222,59 @@
     </div>
 
     <script>
+        // Türkiye'de yaygın kullanılan soyadları
+        const commonLastNames = [
+    'Yılmaz', 'Kaya', 'Demir', 'Çelik', 'Şahin', 'Yıldız', 'Yıldırım', 'Öztürk',
+    'Aydın', 'Özdemir', 'Arslan', 'Doğan', 'Kılıç', 'Aslan', 'Çetin', 'Erdoğan',
+    'Şen', 'Yalçın', 'Güler', 'Koç', 'Kurt', 'Özkan', 'Şimşek', 'Polat',
+    'Bulut', 'Kaplan', 'Eren', 'Turan', 'Taş', 'Sezer', 'Gök', 'Karaca',
+    'Kara', 'Aksoy', 'Er', 'Erdem', 'Uçar', 'Tekin', 'Korkmaz', 'Can',
+    'Bayram', 'Bozkurt', 'Duman', 'Çakır', 'Öner', 'Ergin', 'Ay', 'Göker',
+    'Avcı', 'Tuncer', 'Baran', 'Dinç', 'Güneş', 'Aktaş', 'Önal', 'Kocak',
+    'Arı', 'Sarıkaya', 'Ekinci', 'Tanrıverdi', 'Uzun', 'Kayaalp', 'Boz', 'Baş',
+    'Keskin', 'Çınar', 'Gül', 'Ertaş', 'Albayrak', 'Altun', 'Özer', 'Durmaz',
+    'Orhan', 'Acar', 'Balcı', 'Taşkın', 'Türkmen', 'Akyüz', 'Şeker', 'İnan',
+    'Saruhan', 'Türkmenoğlu', 'Demirtaş', 'Bektaş', 'Alkan', 'Telli', 'Genç', 'Büyük'
+];
+        // Input validation için event listener'lar
+        document.getElementById('firstName').addEventListener('keypress', onlyLetters);
+        document.getElementById('lastName').addEventListener('keypress', onlyLetters);
+        document.getElementById('newLastName').addEventListener('keypress', onlyLetters);
+
+        function onlyLetters(e) {
+            const char = String.fromCharCode(e.keyCode);
+            const pattern = /[a-zA-ZğüşıöçĞÜŞİÖÇ\s]/;
+            if (!pattern.test(char)) {
+                e.preventDefault();
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function clearForm() {
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('newLastName').value = '';
+            document.getElementById('result').style.display = 'none';
+        }
+
+        function findSuitableLastName(firstName) {
+            let bestScore = 0;
+            let bestLastName = '';
+            
+            for (const lastName of commonLastNames) {
+                const score = calculateHarmony(firstName, lastName);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestLastName = lastName;
+                }
+            }
+            
+            return { name: bestLastName, score: bestScore };
+        }
+
         function calculateHarmony(firstName, newLastName) {
             let score = 0;
             const maxScore = 100;
@@ -234,43 +349,80 @@
         }
 
         function analyzeNames() {
-            const firstName = document.getElementById('firstName').value.trim();
-            const lastName = document.getElementById('lastName').value.trim();
-            const newLastName = document.getElementById('newLastName').value.trim();
-            const resultDiv = document.getElementById('result');
-            
-            if (!firstName || !lastName || !newLastName) {
-                alert('Lütfen tüm alanları doldurunuz!');
-                return;
-            }
+    const firstName = document.getElementById('firstName').value.trim().toLowerCase();
+    const lastName = document.getElementById('lastName').value.trim().toLowerCase();
+    const newLastName = document.getElementById('newLastName').value.trim().toLowerCase();
+    const resultDiv = document.getElementById('result');
 
-            const harmonyScore = calculateHarmony(firstName, newLastName);
-            const message = getHarmonyMessage(harmonyScore);
+    if (!firstName || !lastName || !newLastName) {
+        alert('Lütfen tüm alanları doldurunuz!');
+        return;
+    }
 
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <h3>Analiz Sonucu</h3>
-                <p style="font-size: 1.2rem; margin-bottom: 10px;">
-                    <strong>${firstName} ${newLastName}</strong>
-                </p>
-                <p style="font-size: 1.1rem; color: #007bff;">
-                    Uyum Skoru: ${harmonyScore}%
-                </p>
-                <p style="font-size: 1.2rem; margin-top: 10px;">
-                    ${message}
-                </p>
-                <div style="margin-top: 15px; font-size: 0.9rem; color: #666;">
-                    Analiz Kriterleri:
-                    <ul>
-                        <li>Harf uyumu</li>
-                        <li>Hece sayısı</li>
-                        <li>İsim uzunluğu</li>
-                        <li>Ses uyumu</li>
-                        <li>Ortak harfler</li>
-                    </ul>
-                </div>
-            `;
-        }
+    // Özel durum: Aslı Rana - Yılmaz - Dülger (küçük harf uyumu için dönüştürülmüş haliyle kontrol)
+    if (firstName === "aslı rana" && lastName === "yılmaz" && newLastName === "dülger") {
+        const harmonyScore = 100;
+        const message = "Mükemmel bir uyum!, çok güzel bir soyada ait birini tercih etmişsiniz. Sizi Kutluyorum. 🌟";
+
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <h3>Analiz Sonucu</h3>
+            <p style="font-size: 1.2rem; margin-bottom: 10px;">
+                <strong>${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${newLastName.charAt(0).toUpperCase() + newLastName.slice(1)}</strong>
+            </p>
+            <p style="font-size: 1.1rem; color: #007bff;">
+                Uyum Skoru: ${harmonyScore}%
+            </p>
+            <p style="font-size: 1.2rem; margin-top: 10px;">
+                ${message}
+            </p>
+        `;
+        return;
+    }
+
+    const harmonyScore = calculateHarmony(firstName, newLastName);
+    const message = getHarmonyMessage(harmonyScore);
+
+    let resultHTML = `
+        <h3>Analiz Sonucu</h3>
+        <p style="font-size: 1.2rem; margin-bottom: 10px;">
+            <strong>${firstName} ${newLastName}</strong>
+        </p>
+        <p style="font-size: 1.1rem; color: #007bff;">
+            Uyum Skoru: ${harmonyScore}%
+        </p>
+        <p style="font-size: 1.2rem; margin-top: 10px;">
+            ${message}
+        </p>
+    `;
+
+    if (harmonyScore < 50) {
+        const suggestion = findSuitableLastName(firstName);
+        resultHTML += `
+            <div style="margin-top: 20px; padding: 15px; background-color: #f8d7da; border-radius: 5px;">
+                <p style="color: #721c24;">Alternatif Soyad Önerisi:</p>
+                <p style="font-size: 1.1rem;"><strong>${suggestion.name}</strong> (Uyum: ${suggestion.score}%)</p>
+            </div>
+        `;
+    }
+
+    resultHTML += `
+        <div style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+            Analiz Kriterleri:
+            <ul>
+                <li>Harf uyumu</li>
+                <li>Hece sayısı</li>
+                <li>İsim uzunluğu</li>
+                <li>Ses uyumu</li>
+                <li>Ortak harfler</li>
+            </ul>
+        </div>
+    `;
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = resultHTML;
+}
+
     </script>
     <footer class="footer">
     <div class="footer-content">
